@@ -1,3 +1,10 @@
+/**
+ * @file npcap_wrapper.h
+ * @author Deniz Cakiroglu (dcakiroglu@torontomu.ca)
+ * @brief 
+ * @date 2023-10-01
+ * 
+ */
 #ifndef PIPE_UTILS_H
 #define PIPE_UTILS_H
 
