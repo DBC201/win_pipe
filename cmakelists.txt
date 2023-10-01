@@ -1,0 +1,9 @@
+cmake_minimum_required(VERSION 3.21)
+set(CMAKE_CXX_STANDARD 20)
+project(win_pipe)
+
+add_executable(pipe src/pipe.cpp)
+add_executable(pipe_listen src/pipe_listen.cpp)
+
+target_include_directories(pipe PUBLIC include)
+target_include_directories(pipe_listen PUBLIC include)
