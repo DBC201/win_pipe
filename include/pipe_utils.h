@@ -1,9 +1,9 @@
 /**
  * @file npcap_wrapper.h
  * @author Deniz Cakiroglu (dcakiroglu@torontomu.ca)
- * @brief 
+ * @brief
  * @date 2023-10-01
- * 
+ *
  */
 #ifndef PIPE_UTILS_H
 #define PIPE_UTILS_H
@@ -18,9 +18,20 @@ namespace pipe_utils
 	using ByteArray = std::vector<unsigned char>;
 
 	class PipeUtils
+	/**
+		 * @brief 
+		 * Some common pipe errors:
+		 * 
+		 * ERROR_PIPE_BUSY - 
+		 * 
+		 * ERROR_NO_DATA - 
+		 * 
+		 * ERROR_PIPE_NOT_CONNECTED  
+		 * 
+		 * @return DWORD 
+	*/
 	{
 	public:
-
 		ByteArray read()
 		{
 			ByteArray buffer(output_buffer_size);
@@ -48,7 +59,8 @@ namespace pipe_utils
 							data.assign(buffer.begin(), buffer.begin() + bytesRead);
 							return data;
 						}
-						else {
+						else
+						{
 							throw std::runtime_error("Failed to read data from pipe");
 						}
 					}
@@ -63,7 +75,7 @@ namespace pipe_utils
 			}
 		}
 
-		void write(ByteArray data)
+		BOOL write(ByteArray data)
 		{
 			DWORD dataSize = static_cast<DWORD>(data.size());
 
@@ -79,10 +91,15 @@ namespace pipe_utils
 			dataToSend.insert(dataToSend.end(), data.begin(), data.end());
 
 			DWORD bytesWritten;
-			WriteFile(hPipe, dataToSend.data(), static_cast<DWORD>(dataToSend.size()), &bytesWritten, NULL);
+			return WriteFile(hPipe, dataToSend.data(), static_cast<DWORD>(dataToSend.size()), &bytesWritten, NULL);
 		}
 
 		void close()
+		{
+			CloseHandle(hPipe);
+		}
+
+		~PipeUtils()
 		{
 			CloseHandle(hPipe);
 		}
@@ -103,10 +120,37 @@ namespace pipe_utils
 				PIPE_ACCESS_OUTBOUND,
 				// PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE
 				PIPE_TYPE_BYTE | PIPE_READMODE_BYTE
-					// | PIPE_NOWAIT // writing and reading are non-blocking
-					| PIPE_WAIT,
-				//  PIPE_UNLIMITED_INSTANCES
-				1, // Number of child pipes
+				// | PIPE_NOWAIT, // writing and reading are non-blocking
+				| PIPE_WAIT,
+				// PIPE_UNLIMITED_INSTANCES,
+				1,					// Number of child pipes
+				input_buffer_size,	// Output buffer size in bytes
+				output_buffer_size, // Input buffer size in bytes
+				NMPWAIT_WAIT_FOREVER,
+				NULL);
+			if (hPipe == INVALID_HANDLE_VALUE)
+			{
+				throw std::runtime_error("Failed to create named pipe. Error code: " + GetLastError());
+			}
+		}
+
+		/**
+		 * @brief If no_wait is set to true, the pipe will be duplex
+		 * 
+		 * @param pipeName 
+		 * @param no_wait 
+		 */
+		ParentPipe(const char *pipeName, bool no_wait)
+		{
+			hPipe = CreateNamedPipe(
+				pipeName,
+				PIPE_ACCESS_DUPLEX,
+				// PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE
+				PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | (no_wait ? PIPE_NOWAIT : PIPE_WAIT),
+				// | PIPE_NOWAIT, // writing and reading are non-blocking
+				// | PIPE_WAIT,
+				// PIPE_UNLIMITED_INSTANCES,
+				1,					// Number of child pipes
 				input_buffer_size,	// Output buffer size in bytes
 				output_buffer_size, // Input buffer size in bytes
 				NMPWAIT_WAIT_FOREVER,
@@ -119,11 +163,12 @@ namespace pipe_utils
 
 		/**
 		 * @brief wait until a client connects to the pipe
-		 * 
-		 * @return true 
-		 * @return false 
+		 *
+		 * @return true
+		 * @return false
 		 */
-		bool wait() {
+		bool wait()
+		{
 			return ConnectNamedPipe(hPipe, NULL);
 		}
 	};
@@ -131,11 +176,11 @@ namespace pipe_utils
 	class ChildPipe : public PipeUtils
 	{
 	public:
-		ChildPipe(const char *pipeName)
+		ChildPipe(const char *pipeName, bool can_read, bool can_write)
 		{
 			hPipe = CreateFile(
 				pipeName,
-				GENERIC_READ,
+				(can_read ? GENERIC_READ : 0) | (can_write ? GENERIC_WRITE : 0),
 				0,
 				NULL,
 				OPEN_EXISTING,
