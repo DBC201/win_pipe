@@ -9,7 +9,7 @@ using pipe_utils::ByteArray;
 int main()
 {
 	// Define the pipe name
-	const char *pipeName = "\\\\.\\pipe\\interface_pipe";
+	const char *pipeName = "\\\\.\\pipe\\example_pipe";
 
 	ParentPipe parentPipe(pipeName);
 

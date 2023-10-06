@@ -4,7 +4,7 @@ using pipe_utils::ChildPipe;
 using pipe_utils::ByteArray;
 
 int main() {
-    const char* pipeName = "\\\\.\\pipe\\sdn_pipe";
+    const char* pipeName = "\\\\.\\pipe\\example_pipe";
 
 	ChildPipe childPipe(pipeName, true, false);
 	while (1) {
