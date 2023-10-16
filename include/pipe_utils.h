@@ -15,7 +15,7 @@
 
 namespace pipe_utils
 {
-	using ByteArray = std::vector<unsigned char>;
+	using ByteArray = std::vector<uint8_t>;
 
 	class PipeUtils
 	/**
