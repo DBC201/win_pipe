@@ -113,6 +113,11 @@ namespace pipe_utils
 	class ParentPipe : public PipeUtils
 	{
 	public:
+		/**
+		 * @brief Doesn't allow child to write (Simplex pipe)
+		 * 
+		 * @param pipeName 
+		 */
 		ParentPipe(const char *pipeName)
 		{
 			hPipe = CreateNamedPipe(
@@ -135,7 +140,7 @@ namespace pipe_utils
 		}
 
 		/**
-		 * @brief If no_wait is set to true, the pipe will be duplex
+		 * @brief Creates a duplex pipe
 		 * 
 		 * @param pipeName 
 		 * @param no_wait 
